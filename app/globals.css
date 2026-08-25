@@ -44,6 +44,10 @@
   --red: oklch(0.62 0.19 25);
   --red-tint: oklch(0.955 0.018 20);
 
+  /* chart tooltip — dark chip on either theme */
+  --tooltip-bg: oklch(0.27 0.01 285);
+  --tooltip-fg: oklch(0.976 0.002 285);
+
   /* shadows — hairline ring + soft layered elevation */
   --shadow-hairline: 0 0 0 1px var(--line);
   --shadow-btn: 0 0 0 1px var(--line-strong), 0 1px 2px oklch(0 0 0 / 0.06);
@@ -85,6 +89,9 @@
   --orange-tint: oklch(0.746 0.156 56 / 0.14);
   --red: oklch(0.666 0.18 21);
   --red-tint: oklch(0.666 0.18 21 / 0.14);
+
+  --tooltip-bg: oklch(0.182 0.006 285);
+  --tooltip-fg: oklch(0.964 0.002 285);
 
   --shadow-hairline: 0 0 0 1px var(--line);
   --shadow-btn: 0 0 0 1px oklch(1 0 0 / 0.1), 0 1px 2px oklch(0 0 0 / 0.3);
@@ -314,6 +321,59 @@ a {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-control);
+}
+
+/* ── insight chart overlays ────────────────────────────── */
+
+.insight-chart-stage {
+  overflow: hidden;
+}
+
+.insight-chart-cursor {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--ink);
+  opacity: 0.26;
+  pointer-events: none;
+}
+
+.insight-chart-tooltip-anchor {
+  position: absolute;
+  z-index: 5;
+  top: 8px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.insight-chart-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  color: var(--tooltip-fg);
+  background: var(--tooltip-bg);
+  box-shadow: var(--shadow-overlay);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.insight-chart-tooltip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.insight-chart-tooltip-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
 }
 
 /* ── misc keyframes ────────────────────────────────────── */

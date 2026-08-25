@@ -6,11 +6,18 @@ import ThinkingState from "@/components/primitives/ThinkingState";
 import CodeBlock from "@/components/primitives/CodeBlock";
 import ContextCards from "@/components/primitives/ContextCards";
 import ApprovalCard from "@/components/primitives/ApprovalCard";
+import InsightCards from "@/components/primitives/InsightCards";
 import { StreamText } from "@/components/atoms/StreamText";
+import {
+  DEFAULT_REPLY,
+  EXAMPLES,
+  SUGGESTED_IDS,
+  findExample,
+  type RichContent,
+} from "@/lib/chat-examples";
 
 type Role = "user" | "assistant";
 type Status = "thinking" | "streaming" | "done";
-type Rich = "code" | "context" | "approval";
 
 interface Message {
   id: string;
@@ -18,41 +25,12 @@ interface Message {
   content: string;
   status?: Status;
   variant?: string;
-  rich?: Rich;
+  rich?: RichContent;
 }
 
-/* Per-turn script: thinking variant, reply text, and an optional rich block
- * rendered after the reply. Cycled by turn to show off the primitives. */
-const TURNS: { variant: string; response: string; rich?: Rich }[] = [
-  {
-    variant: "Steps",
-    response:
-      "Here's a summary based on what I found. The headline numbers held steady quarter over quarter, with the clearest movement in the free-to-paid conversion path — that's where I'd start before drawing broader conclusions.",
-  },
-  {
-    variant: "Search",
-    response: "I looked across a few sources. Here's the most relevant context I pulled in:",
-    rich: "context",
-  },
-  {
-    variant: "Coding",
-    response:
-      "I traced it to how the request is handled. Here's a small helper that fixes it:",
-    rich: "code",
-  },
-  {
-    variant: "Reasoning",
-    response: "Before I roll this out, I need a few decisions from you:",
-    rich: "approval",
-  },
-];
-
-const SUGGESTIONS = [
-  "Summarize my open tickets",
-  "Write SQL for weekly active users",
-  "Explain this stack trace",
-  "Draft release notes for v0.3",
-];
+const SUGGESTIONS = SUGGESTED_IDS.map(
+  (id) => EXAMPLES.find((e) => e.id === id)!.question,
+);
 
 let idCounter = 0;
 const nextId = () => `m${idCounter++}`;
@@ -68,7 +46,6 @@ export function ChatPanel({
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const turnRef = useRef(0);
   const titleSetRef = useRef(false);
   const sentInitialRef = useRef(false);
 
@@ -81,8 +58,7 @@ export function ChatPanel({
     (text: string) => {
       const trimmed = text.trim();
       if (!trimmed) return;
-      const turn = turnRef.current++;
-      const script = TURNS[turn % TURNS.length];
+      const example = findExample(trimmed);
       const assistantId = nextId();
       setMessages((prev) => [
         ...prev,
@@ -90,10 +66,10 @@ export function ChatPanel({
         {
           id: assistantId,
           role: "assistant",
-          content: script.response,
+          content: example?.answer ?? DEFAULT_REPLY.answer,
           status: "thinking",
-          variant: script.variant,
-          rich: script.rich,
+          variant: example?.variant ?? DEFAULT_REPLY.variant,
+          rich: example?.rich,
         },
       ]);
       if (!titleSetRef.current) {
@@ -192,9 +168,10 @@ export function ChatPanel({
                   )}
                   {m.status === "done" && m.rich && (
                     <div className="pt-1">
-                      {m.rich === "code" && <CodeBlock />}
-                      {m.rich === "context" && <ContextCards />}
-                      {m.rich === "approval" && <ApprovalCard />}
+                      {m.rich.kind === "code" && <CodeBlock {...m.rich.code} />}
+                      {m.rich.kind === "context" && <ContextCards />}
+                      {m.rich.kind === "approval" && <ApprovalCard />}
+                      {m.rich.kind === "insights" && <InsightCards />}
                     </div>
                   )}
                 </div>
