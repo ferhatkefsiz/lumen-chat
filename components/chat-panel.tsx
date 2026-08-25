@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, Sparkles } from "lucide-react";
 import ThinkingState from "@/components/primitives/ThinkingState";
 import CodeBlock from "@/components/primitives/CodeBlock";
 import ContextCards from "@/components/primitives/ContextCards";
 import ApprovalCard from "@/components/primitives/ApprovalCard";
 import InsightCards from "@/components/primitives/InsightCards";
+import PromptBar from "@/components/primitives/PromptBar";
 import { StreamText } from "@/components/atoms/StreamText";
 import {
   DEFAULT_REPLY,
@@ -43,9 +43,7 @@ export function ChatPanel({
   onTitle?: (title: string) => void;
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const titleSetRef = useRef(false);
   const sentInitialRef = useRef(false);
 
@@ -76,7 +74,6 @@ export function ChatPanel({
         titleSetRef.current = true;
         onTitle?.(trimmed);
       }
-      setDraft("");
     },
     [onTitle],
   );
@@ -109,109 +106,89 @@ export function ChatPanel({
 
   const empty = messages.length === 0;
 
-  return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      {/* messages / empty state */}
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
-        {empty ? (
-          <div className="flex h-full items-center justify-center p-6">
-            <div className="flex max-w-md flex-col items-center gap-5 text-center">
-              <div className="flex size-12 items-center justify-center rounded-[var(--radius-card)] bg-accent text-on-accent shadow-btn">
-                <Sparkles size={22} />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <h1 className="text-xl font-semibold tracking-tight text-ink">
-                  How can I help you today?
-                </h1>
-                <p className="text-ink-2">
-                  Ask a question, run a task, or pick up a recent conversation
-                  from the sidebar.
-                </p>
-              </div>
-              <div className="flex flex-wrap justify-center gap-2">
-                {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => send(s)}
-                    className="rounded-full bg-inset px-3 py-1.5 text-[13px] font-medium text-ink-2 shadow-hairline transition-colors hover:bg-hover hover:text-ink"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
+  // New chat: the composer sits centered, a little taller, with a scrollable
+  // row of suggestions beneath it.
+  if (empty) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 pb-10">
+        <div className="w-full max-w-3xl">
+          <h1 className="mb-6 text-center text-[26px] font-normal tracking-[-0.02em] text-ink">
+            <span className="home-reveal block text-ink-3">Hello Ferhat</span>
+            <span className="home-reveal block" style={{ animationDelay: "90ms" }}>
+              What can I help you with?
+            </span>
+          </h1>
+          <PromptBar
+            demo={false}
+            tall
+            placeholder="Message Lumen…"
+            onSend={send}
+          />
+          <div className="mt-3">
+            <div className="fade-x flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => send(s)}
+                  className="shrink-0 rounded-full bg-inset px-3 py-1.5 text-[13px] font-medium whitespace-nowrap text-ink-2 shadow-hairline transition-colors hover:bg-hover hover:text-ink"
+                >
+                  {s}
+                </button>
+              ))}
             </div>
           </div>
-        ) : (
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6">
-            {messages.map((m) =>
-              m.role === "user" ? (
-                <div key={m.id} className="flex justify-end pl-10">
-                  <div className="max-w-[80%] rounded-2xl bg-field px-3.5 py-2 text-[14px] leading-relaxed text-ink">
-                    {m.content}
-                  </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      {/* messages */}
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6">
+          {messages.map((m) =>
+            m.role === "user" ? (
+              <div key={m.id} className="flex justify-end pl-10">
+                <div className="max-w-[80%] rounded-2xl bg-field px-3.5 py-2 text-[14px] leading-relaxed text-ink">
+                  {m.content}
                 </div>
-              ) : (
-                <div key={m.id} className="flex flex-col gap-3 pr-10">
-                  <ThinkingState
-                    variant={m.variant}
-                    onSettled={() => settle(m.id)}
+              </div>
+            ) : (
+              <div key={m.id} className="flex flex-col gap-3">
+                <ThinkingState
+                  variant={m.variant}
+                  onSettled={() => settle(m.id)}
+                />
+                {m.status !== "thinking" && (
+                  <StreamText
+                    text={m.content}
+                    caret={m.status === "streaming"}
+                    onProgress={scrollToBottom}
+                    onDone={() => finish(m.id)}
+                    className="text-[14px] leading-relaxed whitespace-pre-wrap text-ink"
                   />
-                  {m.status !== "thinking" && (
-                    <StreamText
-                      text={m.content}
-                      caret={m.status === "streaming"}
-                      onProgress={scrollToBottom}
-                      onDone={() => finish(m.id)}
-                      className="text-[14px] leading-relaxed whitespace-pre-wrap text-ink"
-                    />
-                  )}
-                  {m.status === "done" && m.rich && (
-                    <div className="pt-1">
-                      {m.rich.kind === "code" && <CodeBlock {...m.rich.code} />}
-                      {m.rich.kind === "context" && <ContextCards />}
-                      {m.rich.kind === "approval" && <ApprovalCard />}
-                      {m.rich.kind === "insights" && <InsightCards />}
-                    </div>
-                  )}
-                </div>
-              ),
-            )}
-          </div>
-        )}
+                )}
+                {m.status === "done" && m.rich && (
+                  <div className="pt-1">
+                    {m.rich.kind === "code" && <CodeBlock {...m.rich.code} />}
+                    {m.rich.kind === "context" && <ContextCards />}
+                    {m.rich.kind === "approval" && <ApprovalCard />}
+                    {m.rich.kind === "insights" && <InsightCards />}
+                  </div>
+                )}
+              </div>
+            ),
+          )}
+        </div>
       </div>
 
       {/* composer */}
       <div className="shrink-0 px-4 pb-4">
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            send(draft);
-          }}
-          onClick={() => inputRef.current?.focus()}
-          className="mx-auto flex w-full max-w-3xl cursor-text items-center gap-2 rounded-[var(--radius-window)] border border-line bg-field p-2 pl-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.035)] transition-[border-color,box-shadow] duration-150 focus-within:border-line-strong"
-        >
-          <input
-            ref={inputRef}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder="Message Lumen…"
-            aria-label="Message"
-            className="min-h-6 flex-1 bg-transparent text-[14px] leading-relaxed text-ink outline-none placeholder:text-ink-3"
-          />
-          <button
-            type="submit"
-            aria-label="Send"
-            disabled={!draft.trim()}
-            className="flex size-8 shrink-0 items-center justify-center rounded-[10px] transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.96]"
-            style={{
-              background: draft.trim() ? "var(--ink)" : "var(--line-strong)",
-              color: draft.trim() ? "var(--surface)" : "var(--ink-2)",
-            }}
-          >
-            <ArrowUp size={17} strokeWidth={2.4} />
-          </button>
-        </form>
+        <div className="mx-auto w-full max-w-3xl">
+          <PromptBar demo={false} placeholder="Message Lumen…" onSend={send} />
+        </div>
       </div>
     </div>
   );
