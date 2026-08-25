@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lumen Chat
 
-## Getting Started
+An AI chat dashboard built with Next.js 16, React 19 and Tailwind CSS v4.
 
-First, run the development server:
+> 🚧 Work in progress — actively being built.
+
+## Tech stack
+
+- **Framework:** [Next.js 16](https://nextjs.org) (App Router)
+- **UI:** React 19 + [Tailwind CSS v4](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com)
+- **Language:** TypeScript
+- **Package manager:** [pnpm](https://pnpm.io)
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+| --- | --- |
+| `pnpm dev` | Start the dev server |
+| `pnpm build` | Production build |
+| `pnpm start` | Serve the production build |
+| `pnpm lint` | Run ESLint |
 
-## Learn More
+## Agent skills
 
-To learn more about Next.js, take a look at the following resources:
+This repo ships a curated set of [agent skills](https://skills.sh) — reusable,
+version-pinned instruction packs that guide AI coding assistants (Claude Code,
+Cursor, etc.) to follow current framework conventions instead of stale training
+data.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Layout**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `.claude/skills/` — the skill files, vendored into the repo so Claude Code
+  discovers them (no install step needed on clone).
+- `skills-lock.json` — records each skill's source repo + content hash
+  (provenance), so the set is traceable and updatable.
 
-## Deploy on Vercel
+**Installed skills**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Skill | Source | Purpose |
+| --- | --- | --- |
+| `next-cache-components-optimizer` | `vercel/next.js` | Optimize routes for Cache Components / instant nav |
+| `next-cache-components-adoption` | `vercel/next.js` | Adopt/migrate to Cache Components |
+| `vercel-react-best-practices` | `vercel-labs/agent-skills` | React/Next.js performance patterns |
+| `vercel-composition-patterns` | `vercel-labs/agent-skills` | Scalable component composition |
+| `web-design-guidelines` | `vercel-labs/agent-skills` | Web interface / accessibility guidelines |
+| `shadcn` | `shadcn/ui` | Correct shadcn/ui usage |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Skills are picked up automatically when a task matches their triggers; no manual
+step is required to benefit from them.
+
+**Managing skills** — via the [`skills`](https://skills.sh) CLI (run with `npx`):
+
+```bash
+# List the installed skills
+npx skills list
+
+# Add a new skill from a repo
+npx skills add <owner>/<repo>
+```
+
+> Note: `npx skills update` refreshes skills but reorganizes them into a shared
+> `.agents/skills/` directory with symlinks. This repo keeps things simple by
+> vendoring the files directly under `.claude/skills/`.
