@@ -49,6 +49,7 @@ export function ChatPanel({
   const inputRef = useRef<HTMLInputElement>(null);
   const turnRef = useRef(0);
   const titleSetRef = useRef(false);
+  const sentInitialRef = useRef(false);
 
   const scrollToBottom = useCallback(() => {
     const el = scrollRef.current;
@@ -94,8 +95,12 @@ export function ChatPanel({
   }, []);
 
   // Auto-send a prompt handed in from the sidebar / a suggestion.
+  // The ref guard keeps StrictMode's double-mount from sending it twice.
   useEffect(() => {
-    if (initialPrompt) send(initialPrompt);
+    if (initialPrompt && !sentInitialRef.current) {
+      sentInitialRef.current = true;
+      send(initialPrompt);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
