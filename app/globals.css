@@ -289,6 +289,33 @@ a {
   width: 36px;
 }
 
+/* ── primitive card scaffolding ────────────────────────── */
+
+.primitive-card-pad {
+  padding: 12px;
+}
+
+.primitive-card-bar {
+  padding: 10px 12px;
+}
+
+.primitive-card-footer {
+  padding: 10px 12px;
+}
+
+.primitive-table-cell {
+  padding: 10px 12px;
+}
+
+.primitive-icon-button {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-control);
+}
+
 /* ── misc keyframes ────────────────────────────────────── */
 
 @keyframes fade-in {

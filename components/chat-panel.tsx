@@ -3,10 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUp, Sparkles } from "lucide-react";
 import ThinkingState from "@/components/primitives/ThinkingState";
+import CodeBlock from "@/components/primitives/CodeBlock";
+import ContextCards from "@/components/primitives/ContextCards";
+import ApprovalCard from "@/components/primitives/ApprovalCard";
 import { StreamText } from "@/components/atoms/StreamText";
 
 type Role = "user" | "assistant";
 type Status = "thinking" | "streaming" | "done";
+type Rich = "code" | "context" | "approval";
 
 interface Message {
   id: string;
@@ -14,17 +18,34 @@ interface Message {
   content: string;
   status?: Status;
   variant?: string;
+  rich?: Rich;
 }
 
-/* Canned assistant replies — cycled per turn to fake a token stream. */
-const RESPONSES = [
-  "Here's a summary based on what I found. The headline numbers held steady quarter over quarter, with the clearest movement in the free-to-paid conversion path — that's where I'd start before drawing broader conclusions.",
-  "Good question. The short version: yes, but it depends on where the work runs. I've weighed the trade-offs so you can pick the approach that fits your constraints.",
-  "I traced the issue to how state is initialized on the first render. A small change there should resolve it without touching the rest of the flow.",
-  "Done. I pulled the data, checked it against the previous period, and the trend is consistent. Let me know if you'd like it broken down by segment.",
+/* Per-turn script: thinking variant, reply text, and an optional rich block
+ * rendered after the reply. Cycled by turn to show off the primitives. */
+const TURNS: { variant: string; response: string; rich?: Rich }[] = [
+  {
+    variant: "Steps",
+    response:
+      "Here's a summary based on what I found. The headline numbers held steady quarter over quarter, with the clearest movement in the free-to-paid conversion path — that's where I'd start before drawing broader conclusions.",
+  },
+  {
+    variant: "Search",
+    response: "I looked across a few sources. Here's the most relevant context I pulled in:",
+    rich: "context",
+  },
+  {
+    variant: "Coding",
+    response:
+      "I traced it to how the request is handled. Here's a small helper that fixes it:",
+    rich: "code",
+  },
+  {
+    variant: "Reasoning",
+    response: "Before I roll this out, I need a few decisions from you:",
+    rich: "approval",
+  },
 ];
-
-const VARIANTS = ["Steps", "Search", "Coding", "Reasoning"];
 
 const SUGGESTIONS = [
   "Summarize my open tickets",
@@ -61,6 +82,7 @@ export function ChatPanel({
       const trimmed = text.trim();
       if (!trimmed) return;
       const turn = turnRef.current++;
+      const script = TURNS[turn % TURNS.length];
       const assistantId = nextId();
       setMessages((prev) => [
         ...prev,
@@ -68,9 +90,10 @@ export function ChatPanel({
         {
           id: assistantId,
           role: "assistant",
-          content: RESPONSES[turn % RESPONSES.length],
+          content: script.response,
           status: "thinking",
-          variant: VARIANTS[turn % VARIANTS.length],
+          variant: script.variant,
+          rich: script.rich,
         },
       ]);
       if (!titleSetRef.current) {
@@ -153,7 +176,7 @@ export function ChatPanel({
                   </div>
                 </div>
               ) : (
-                <div key={m.id} className="flex flex-col gap-2 pr-10">
+                <div key={m.id} className="flex flex-col gap-3 pr-10">
                   <ThinkingState
                     variant={m.variant}
                     onSettled={() => settle(m.id)}
@@ -166,6 +189,13 @@ export function ChatPanel({
                       onDone={() => finish(m.id)}
                       className="text-[14px] leading-relaxed whitespace-pre-wrap text-ink"
                     />
+                  )}
+                  {m.status === "done" && m.rich && (
+                    <div className="pt-1">
+                      {m.rich === "code" && <CodeBlock />}
+                      {m.rich === "context" && <ContextCards />}
+                      {m.rich === "approval" && <ApprovalCard />}
+                    </div>
                   )}
                 </div>
               ),
