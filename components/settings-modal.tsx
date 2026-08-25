@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 import {
   Bell,
   Keyboard,
@@ -344,8 +345,13 @@ function Panel({ category }: { category: CategoryKey }) {
   }
 }
 
+const CATEGORY_KEYS = CATEGORIES.map((c) => c.key);
+
 export function SettingsModal({ onClose }: { onClose: () => void }) {
-  const [active, setActive] = useState<CategoryKey>("general");
+  const [active, setActive] = useQueryState(
+    "tab",
+    parseAsStringLiteral(CATEGORY_KEYS).withDefault("general"),
+  );
   const [query, setQuery] = useState("");
 
   useEffect(() => {
