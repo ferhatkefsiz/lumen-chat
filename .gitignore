@@ -28,9 +28,6 @@
 .idea/
 .vscode/
 
-# local agent instructions
-CLAUDE.md
-
 # debug
 npm-debug.log*
 yarn-debug.log*
