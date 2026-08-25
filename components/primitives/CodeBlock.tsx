@@ -147,7 +147,7 @@ export default function CodeBlock({
   }, [code]);
 
   return (
-    <div className="w-full max-w-95 overflow-hidden rounded-card bg-surface shadow-card">
+    <div className="w-full overflow-hidden rounded-card bg-surface shadow-card">
       {/* header */}
       <div className="primitive-card-bar flex items-center justify-between border-b border-line">
         <span className="flex items-center gap-2">
