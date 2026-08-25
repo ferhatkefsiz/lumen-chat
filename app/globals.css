@@ -1,26 +1,192 @@
 @import "tailwindcss";
 
+/* Dark mode is class-based (driven by next-themes). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ──────────────────────────────────────────────────────────
+ * Lumen — design tokens
+ * Cool violet-tinted neutrals, an indigo accent used sparingly,
+ * a hairline-ring + layered shadow scale, and semantic colors as
+ * a condiment. Authored in OKLCH; light is the base, dark tunes
+ * lightness/chroma per pair rather than mechanically inverting.
+ * ────────────────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* surfaces — cool, violet-tinted near-whites */
+  --page: oklch(0.985 0.002 285);
+  --canvas: oklch(0.966 0.004 285);
+  --surface: oklch(1 0 0);
+  --inset: oklch(0.978 0.003 285);
+  --hover: oklch(0.968 0.004 285);
+  --hover-2: oklch(0.936 0.006 285);
+
+  /* ink ramp */
+  --ink: oklch(0.25 0.012 285);
+  --ink-2: oklch(0.502 0.016 285);
+  --ink-3: oklch(0.68 0.013 285);
+
+  /* borders — solid, crisp hairlines */
+  --line: oklch(0.926 0.005 285);
+  --line-strong: oklch(0.894 0.008 285);
+  --field: oklch(0.96 0.003 285);
+
+  /* accent — indigo/violet */
+  --accent: oklch(0.52 0.19 285);
+  --accent-ink: oklch(0.5 0.185 285);
+  --accent-tint: oklch(0.95 0.03 285);
+  --on-accent: oklch(0.99 0.004 285);
+
+  /* semantic */
+  --green: oklch(0.6 0.15 150);
+  --green-tint: oklch(0.955 0.018 155);
+  --orange: oklch(0.69 0.178 55);
+  --orange-tint: oklch(0.96 0.022 65);
+  --red: oklch(0.62 0.19 25);
+  --red-tint: oklch(0.955 0.018 20);
+
+  /* shadows — hairline ring + soft layered elevation */
+  --shadow-hairline: 0 0 0 1px var(--line);
+  --shadow-btn: 0 0 0 1px var(--line-strong), 0 1px 2px oklch(0 0 0 / 0.06);
+  --shadow-card:
+    0 0 0 1px var(--line), 0 1px 3px oklch(0 0 0 / 0.06),
+    0 4px 12px oklch(0 0 0 / 0.04);
+  --shadow-raised:
+    0 0 0 1px var(--line), 0 2px 8px oklch(0 0 0 / 0.08),
+    0 8px 24px oklch(0 0 0 / 0.06);
+  --shadow-overlay:
+    0 0 0 1px var(--line), 0 12px 40px oklch(0 0 0 / 0.14);
+  --shadow-inset-field: inset 0 1px 2px oklch(0 0 0 / 0.08);
+}
+
+.dark {
+  --page: oklch(0.205 0.008 285);
+  --canvas: oklch(0.228 0.009 285);
+  --surface: oklch(0.258 0.01 285);
+  --inset: oklch(0.24 0.008 285);
+  --hover: oklch(0.288 0.011 285);
+  --hover-2: oklch(0.318 0.013 285);
+
+  --ink: oklch(0.96 0.004 285);
+  --ink-2: oklch(0.73 0.01 285);
+  --ink-3: oklch(0.54 0.012 285);
+
+  --line: oklch(0.31 0.01 285);
+  --line-strong: oklch(0.362 0.012 285);
+  --field: oklch(0.292 0.01 285);
+
+  --accent: oklch(0.62 0.19 285);
+  --accent-ink: oklch(0.78 0.13 285);
+  --accent-tint: oklch(0.62 0.19 285 / 0.18);
+  --on-accent: oklch(0.99 0.004 285);
+
+  --green: oklch(0.705 0.15 154);
+  --green-tint: oklch(0.705 0.15 154 / 0.14);
+  --orange: oklch(0.746 0.156 56);
+  --orange-tint: oklch(0.746 0.156 56 / 0.14);
+  --red: oklch(0.666 0.18 21);
+  --red-tint: oklch(0.666 0.18 21 / 0.14);
+
+  --shadow-hairline: 0 0 0 1px var(--line);
+  --shadow-btn: 0 0 0 1px oklch(1 0 0 / 0.1), 0 1px 2px oklch(0 0 0 / 0.3);
+  --shadow-card:
+    0 0 0 1px oklch(1 0 0 / 0.11), 0 1px 2px oklch(0 0 0 / 0.2),
+    0 2px 6px oklch(0 0 0 / 0.2);
+  --shadow-raised:
+    0 0 0 1px oklch(1 0 0 / 0.13), 0 2px 10px oklch(0 0 0 / 0.24);
+  --shadow-overlay:
+    0 0 0 1px oklch(1 0 0 / 0.15), 0 12px 40px oklch(0 0 0 / 0.4);
+  --shadow-inset-field: inset 0 1px 2px oklch(0 0 0 / 0.4);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* colors */
+  --color-page: var(--page);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-inset: var(--inset);
+  --color-hover: var(--hover);
+  --color-hover-2: var(--hover-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-field: var(--field);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-tint: var(--accent-tint);
+  --color-on-accent: var(--on-accent);
+  --color-green: var(--green);
+  --color-green-tint: var(--green-tint);
+  --color-orange: var(--orange);
+  --color-orange-tint: var(--orange-tint);
+  --color-red: var(--red);
+  --color-red-tint: var(--red-tint);
+
+  /* shadows */
+  --shadow-hairline: var(--shadow-hairline);
+  --shadow-btn: var(--shadow-btn);
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-overlay: var(--shadow-overlay);
+  --shadow-inset-field: var(--shadow-inset-field);
+
+  /* type */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+
+  /* radii */
+  --radius-chip: 6px;
+  --radius-control: 8px;
+  --radius-card: 10px;
+  --radius-window: 14px;
+
+  /* easing */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── base ─────────────────────────────────────────────── */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--canvas);
+  color: var(--ink);
+  font-feature-settings: "cv11", "ss01";
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+}
+
+::selection {
+  background: var(--accent-tint);
+  color: var(--ink);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  text-underline-position: from-font;
+  text-decoration-skip-ink: auto;
+}
+
+/* Freeze transitions during a theme flip so it's one clean repaint. */
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
 }
