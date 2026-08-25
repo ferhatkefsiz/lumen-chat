@@ -4,9 +4,14 @@ import { useState } from "react";
 import SidebarNav from "@/components/primitives/SidebarNav";
 import { ChatPanel } from "@/components/chat-panel";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SettingsModal } from "@/components/settings-modal";
+import { EXAMPLES } from "@/lib/chat-examples";
+
+const RECENTS = EXAMPLES.map((e) => ({ id: e.id, label: e.question }));
 
 export function AppShell() {
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   // Bumping the key remounts ChatPanel with a fresh conversation.
   const [convo, setConvo] = useState<{ key: number; prompt: string | null }>({
     key: 0,
@@ -25,14 +30,14 @@ export function AppShell() {
 
   return (
     <div className="flex h-dvh w-full gap-1 bg-canvas p-2">
-      <div className="pl-1">
-        <SidebarNav
-          fill
-          activeTitle={activeTitle}
-          onNewChat={newChat}
-          onPick={pick}
-        />
-      </div>
+      <SidebarNav
+        fill
+        activeTitle={activeTitle}
+        recents={RECENTS}
+        onNewChat={newChat}
+        onPick={pick}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
 
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[var(--radius-window)] bg-surface shadow-card">
         {/* Topbar */}
@@ -49,6 +54,8 @@ export function AppShell() {
           onTitle={setActiveTitle}
         />
       </main>
+
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </div>
   );
 }

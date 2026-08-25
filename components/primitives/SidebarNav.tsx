@@ -9,15 +9,12 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import {
-  Check,
   ChevronDown,
   Home,
   LogOut,
   PanelLeft,
-  Plus,
   Search,
   Settings,
-  Sparkles,
   SquarePen,
   UserPlus,
   X,
@@ -26,11 +23,17 @@ import GlideMenu from "@/components/primitives/GlideMenu";
 
 /* ─────────────────────────────────────────────────────────
  * SIDEBAR NAV
- * Compact workspace switcher, primary navigation, searchable
- * chat history, and a collapse that preserves icon alignment.
+ * Brand header, primary navigation, searchable chat history, and
+ * a user profile footer whose menu opens Settings. Collapses to a
+ * 52px rail while preserving icon alignment.
  * ───────────────────────────────────────────────────────── */
 
-const WORKSPACE = { key: "lumen", name: "Lumen", monogram: "L" };
+const BRAND = { name: "Lumen", monogram: "L" };
+const USER = {
+  name: "Ferhat Kefsiz",
+  email: "ferhat@lumen.app",
+  monogram: "F",
+};
 
 const NAV_ITEMS = [
   { key: "home", label: "Home", icon: <Home size={18} /> },
@@ -52,11 +55,7 @@ const DEFAULT_RECENTS: SidebarRecent[] = [
   { id: "metrics", label: "Summarize Q3 metrics" },
   { id: "release", label: "Draft release notes" },
   { id: "auth", label: "Debug the auth flow" },
-  { id: "churn", label: "Write SQL for churn" },
   { id: "sprint", label: "Plan next sprint" },
-  { id: "tests", label: "Generate unit tests" },
-  { id: "trace", label: "Explain this stack trace" },
-  { id: "refactor", label: "Refactor the sidebar" },
 ];
 
 type SidebarNavProps = {
@@ -65,15 +64,10 @@ type SidebarNavProps = {
   fill?: boolean;
   onNewChat?: () => void;
   onPick?: (id: string, label: string, prompt?: string) => void;
-  /** controlled primary-nav selection (e.g. "home" | "invite") */
   activeNav?: string;
   onNavigate?: (key: string) => void;
-  /** footer call-to-action — defaults to the demo "Upgrade" button */
-  footerLabel?: string;
-  footerIcon?: ReactNode;
-  onFooterClick?: () => void;
+  onOpenSettings?: () => void;
   recents?: SidebarRecent[];
-  variant?: string;
 };
 
 const SIDEBAR_MOTION = {
@@ -85,13 +79,6 @@ const SIDEBAR_MOTION = {
   easing: "cubic-bezier(0.16, 1, 0.3, 1)",
 };
 
-/* ─────────────────────────────────────────────────────────
- * CHAT SEARCH STORYBOARD
- *
- *   0ms   search is triggered; Chats label begins fading
- *   0ms   field grows right → left from the search control
- * 180ms   field fills the row; cursor is focused and ready
- * ───────────────────────────────────────────────────────── */
 const CHAT_SEARCH_MOTION = {
   duration: 180,
   closedWidth: 28,
@@ -151,24 +138,40 @@ function RailButton({
   );
 }
 
-function WorkspaceMenu({
+/* user menu — opens upward from the profile footer */
+function UserMenu({
   position,
   onClose,
+  onOpenSettings,
 }: {
-  position: { top: number; left: number };
+  position: { bottom: number; left: number; width: number };
   onClose: () => void;
+  onOpenSettings?: () => void;
 }) {
   return createPortal(
     <div
-      data-workspace-menu
-      className="fixed z-50 w-64 rounded-[14px] bg-surface p-1.5 shadow-overlay"
+      data-user-menu
+      className="fixed z-50 rounded-[14px] bg-surface p-1.5 shadow-overlay"
       style={{
-        top: position.top,
+        bottom: position.bottom,
         left: position.left,
-        animation: "pop-in 180ms cubic-bezier(0.23,1,0.32,1) both",
-        transformOrigin: "top left",
+        width: Math.max(position.width, 220),
+        animation: "pop-in 160ms cubic-bezier(0.23,1,0.32,1) both",
+        transformOrigin: "bottom left",
       }}
     >
+      <div className="flex items-center gap-2 px-2 py-1.5">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-ink text-[11px] font-semibold text-surface">
+          {USER.monogram}
+        </span>
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate text-[13px] font-medium text-ink">
+            {USER.name}
+          </span>
+          <span className="truncate text-[11.5px] text-ink-3">{USER.email}</span>
+        </span>
+      </div>
+      <div className="my-1 h-px bg-line" />
       <GlideMenu
         className="flex flex-col gap-px"
         highlightClassName="inset-x-0 rounded-[8px] bg-hover-2"
@@ -176,46 +179,24 @@ function WorkspaceMenu({
         <button
           data-menu-row
           type="button"
-          onClick={onClose}
-          className="relative z-10 flex h-10 w-full items-center gap-1.5 rounded-[8px] px-2 text-left"
+          onClick={() => {
+            onClose();
+            onOpenSettings?.();
+          }}
+          className="relative z-10 flex h-9 w-full items-center gap-2 rounded-[8px] px-2 text-left"
         >
-          <span className="flex size-6 shrink-0 items-center justify-center rounded-[7px] bg-ink text-[11px] font-semibold text-surface">
-            {WORKSPACE.monogram}
+          <span className="flex size-5 shrink-0 items-center justify-center text-ink-2">
+            <Settings size={16} />
           </span>
-          <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium text-ink">
-            {WORKSPACE.name}
-          </span>
-          <span className="shrink-0 text-ink">
-            <Check size={18} />
+          <span className="min-w-0 flex-1 truncate text-[13.5px] text-ink">
+            Settings
           </span>
         </button>
-        <div className="my-1 h-px bg-line" />
-        {[
-          { label: "New workspace", icon: <Plus size={16} /> },
-          { label: "Workspace settings", icon: <Settings size={16} /> },
-          { label: "Invite team members", icon: <UserPlus size={16} /> },
-        ].map((item) => (
-          <button
-            key={item.label}
-            data-menu-row
-            type="button"
-            onClick={onClose}
-            className="relative z-10 flex h-9 w-full items-center gap-1.5 rounded-[8px] px-2 text-left"
-          >
-            <span className="flex size-5 shrink-0 items-center justify-center text-ink-2">
-              {item.icon}
-            </span>
-            <span className="min-w-0 flex-1 truncate text-[13.5px] text-ink">
-              {item.label}
-            </span>
-          </button>
-        ))}
-        <div className="my-1 h-px bg-line" />
         <button
           data-menu-row
           type="button"
           onClick={onClose}
-          className="relative z-10 flex h-9 w-full items-center gap-1.5 rounded-[8px] px-2 text-left"
+          className="relative z-10 flex h-9 w-full items-center gap-2 rounded-[8px] px-2 text-left"
         >
           <span className="flex size-5 shrink-0 items-center justify-center text-ink-2">
             <LogOut size={16} />
@@ -238,9 +219,7 @@ export default function SidebarNav({
   onPick,
   activeNav,
   onNavigate,
-  footerLabel = "Upgrade",
-  footerIcon,
-  onFooterClick,
+  onOpenSettings,
   recents = DEFAULT_RECENTS,
 }: SidebarNavProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -251,14 +230,15 @@ export default function SidebarNav({
     onNavigate?.(key);
   };
   const [demoActiveTitle, setDemoActiveTitle] = useState<string | null>(null);
-  const [workspaceOpen, setWorkspaceOpen] = useState(false);
-  const [workspacePosition, setWorkspacePosition] = useState({
-    top: 0,
+  const [userOpen, setUserOpen] = useState(false);
+  const [userPosition, setUserPosition] = useState({
+    bottom: 0,
     left: 0,
+    width: 0,
   });
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const workspaceButtonRef = useRef<HTMLButtonElement>(null);
+  const userButtonRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const selectedTitle =
@@ -268,19 +248,19 @@ export default function SidebarNav({
   );
 
   useEffect(() => {
-    if (!workspaceOpen) return;
+    if (!userOpen) return;
     const close = (event: PointerEvent) => {
       const target = event.target as Element;
       if (
-        !target.closest("[data-workspace-trigger]") &&
-        !target.closest("[data-workspace-menu]")
+        !target.closest("[data-user-trigger]") &&
+        !target.closest("[data-user-menu]")
       ) {
-        setWorkspaceOpen(false);
+        setUserOpen(false);
       }
     };
     document.addEventListener("pointerdown", close);
     return () => document.removeEventListener("pointerdown", close);
-  }, [workspaceOpen]);
+  }, [userOpen]);
 
   useEffect(() => {
     if (searchOpen) searchRef.current?.focus();
@@ -288,9 +268,21 @@ export default function SidebarNav({
 
   const collapse = () => {
     setCollapsed(true);
-    setWorkspaceOpen(false);
+    setUserOpen(false);
     setSearchOpen(false);
     setQuery("");
+  };
+
+  const toggleUser = () => {
+    if (!userOpen && userButtonRef.current) {
+      const rect = userButtonRef.current.getBoundingClientRect();
+      setUserPosition({
+        bottom: window.innerHeight - rect.top + 6,
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+    setUserOpen((open) => !open);
   };
 
   return (
@@ -312,41 +304,16 @@ export default function SidebarNav({
       }
     >
       <div className="flex min-h-0 w-[224px] shrink-0 flex-col">
+        {/* brand header */}
         <div className="relative mb-2.5 h-10 shrink-0">
-          <button
-            ref={workspaceButtonRef}
-            data-workspace-trigger
-            type="button"
-            aria-expanded={workspaceOpen}
-            aria-hidden={collapsed}
-            tabIndex={collapsed ? -1 : 0}
-            onClick={() => {
-              if (!workspaceOpen && workspaceButtonRef.current) {
-                const rect =
-                  workspaceButtonRef.current.getBoundingClientRect();
-                setWorkspacePosition({ top: rect.bottom + 6, left: rect.left });
-              }
-              setWorkspaceOpen((open) => !open);
-            }}
-            className="sidebar-workspace-control absolute left-2 top-1 flex h-8 w-[164px] items-center rounded-[8px] px-2 text-left transition-[background-color,transform] duration-100 hover:bg-hover-2 active:scale-[0.99]"
-          >
-            <span className="sidebar-logo flex size-5 shrink-0 items-center justify-center text-ink">
-              <Sparkles size={18} />
+          <div className="sidebar-workspace-control absolute left-2 top-1 flex h-8 w-[164px] items-center px-2">
+            <span className="sidebar-logo flex size-5 shrink-0 items-center justify-center rounded-[6px] bg-ink text-[10px] font-semibold text-surface">
+              {BRAND.monogram}
             </span>
-            <span className="sidebar-copy ml-1.5 min-w-0 flex-1 truncate text-[14px] font-medium text-ink-2">
-              {WORKSPACE.name}
+            <span className="sidebar-copy ml-1.5 min-w-0 flex-1 truncate text-[14px] font-semibold tracking-tight text-ink">
+              {BRAND.name}
             </span>
-            <span className="sidebar-copy ml-1 flex shrink-0 text-ink-3">
-              <ChevronDown size={16} />
-            </span>
-          </button>
-
-          {workspaceOpen && (
-            <WorkspaceMenu
-              position={workspacePosition}
-              onClose={() => setWorkspaceOpen(false)}
-            />
-          )}
+          </div>
 
           <button
             type="button"
@@ -490,15 +457,47 @@ export default function SidebarNav({
           </GlideGroup>
         </div>
 
-        <div className="sidebar-copy mx-2 mt-3 w-[208px] border-t border-line pt-3">
+        {/* footer — upgrade CTA + user profile */}
+        <div className="mt-3 shrink-0 border-t border-line px-2 pt-2 pb-1">
           <button
             type="button"
-            onClick={onFooterClick ?? onNewChat}
-            className="flex h-8 w-full items-center justify-center gap-1.5 rounded-control bg-hover-2 text-[12.5px] font-medium text-ink transition-[background-color,transform] duration-150 hover:bg-line-strong active:scale-[0.98]"
+            className="sidebar-copy mb-1 flex h-8 w-[208px] items-center justify-center gap-1.5 rounded-control bg-hover-2 text-[12.5px] font-medium text-ink transition-[background-color,transform] duration-150 hover:bg-line-strong active:scale-[0.98]"
           >
-            {footerIcon}
-            {footerLabel}
+            Upgrade
           </button>
+
+          <button
+            ref={userButtonRef}
+            data-user-trigger
+            type="button"
+            aria-expanded={userOpen}
+            aria-label="Account menu"
+            onClick={toggleUser}
+            className="flex h-11 w-full items-center gap-2 rounded-[10px] px-1.5 text-left transition-colors duration-100 hover:bg-hover-2 aria-expanded:bg-hover-2"
+          >
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-ink text-[11px] font-semibold text-surface">
+              {USER.monogram}
+            </span>
+            <span className="sidebar-copy flex min-w-0 flex-1 flex-col">
+              <span className="truncate text-[13px] font-medium text-ink">
+                {USER.name}
+              </span>
+              <span className="truncate text-[11.5px] text-ink-3">
+                {USER.email}
+              </span>
+            </span>
+            <span className="sidebar-copy shrink-0 text-ink-3">
+              <ChevronDown size={15} className="rotate-180" />
+            </span>
+          </button>
+
+          {userOpen && (
+            <UserMenu
+              position={userPosition}
+              onClose={() => setUserOpen(false)}
+              onOpenSettings={onOpenSettings}
+            />
+          )}
         </div>
       </div>
     </aside>
