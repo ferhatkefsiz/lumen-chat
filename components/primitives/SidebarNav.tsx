@@ -359,7 +359,7 @@ export default function SidebarNav({
           ))}
         </GlideGroup>
 
-        <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
+        <div className="sidebar-chats mt-3 min-h-0 flex-1 overflow-y-auto">
           <div className="sidebar-copy relative mx-2 mb-1 h-8">
             <div
               aria-hidden={searchOpen}

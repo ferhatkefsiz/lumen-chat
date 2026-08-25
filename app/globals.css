@@ -296,6 +296,20 @@ a {
   width: 36px;
 }
 
+/* Collapsed rail is icon-only: the chat history (no icons) is hidden outright
+ * so it can't linger as empty blocks or catch hover. */
+.sidebar-chats {
+  transition:
+    opacity var(--sidebar-copy-duration) ease-out,
+    visibility var(--sidebar-copy-duration);
+}
+
+[data-sidebar-collapsed="true"] .sidebar-chats {
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+
 /* ── primitive card scaffolding ────────────────────────── */
 
 .primitive-card-pad {
