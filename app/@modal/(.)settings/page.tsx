@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { SettingsModal } from "@/components/settings-modal";
 
@@ -7,5 +8,9 @@ import { SettingsModal } from "@/components/settings-modal";
  * chat behind it (which stays mounted), and closing returns to where you were. */
 export default function InterceptedSettings() {
   const router = useRouter();
-  return <SettingsModal onClose={() => router.back()} />;
+  return (
+    <Suspense fallback={null}>
+      <SettingsModal onClose={() => router.back()} />
+    </Suspense>
+  );
 }

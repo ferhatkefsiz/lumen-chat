@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { SettingsModal } from "@/components/settings-modal";
@@ -11,7 +12,9 @@ export default function SettingsPage() {
   return (
     <>
       <AppShell />
-      <SettingsModal onClose={() => router.push("/")} />
+      <Suspense fallback={null}>
+        <SettingsModal onClose={() => router.push("/")} />
+      </Suspense>
     </>
   );
 }
