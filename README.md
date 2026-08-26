@@ -1,6 +1,6 @@
-# Lumen Chat
+# AI Chat Dashboard
 
-An AI chat dashboard built with Next.js 16, React 19 and Tailwind CSS v4.
+A polished AI chat dashboard built with Next.js 16, React 19 and Tailwind CSS v4.
 
 > 🚧 Work in progress — actively being built.
 
