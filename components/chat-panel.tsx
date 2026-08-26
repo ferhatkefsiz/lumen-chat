@@ -1,12 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import ThinkingState from "@/components/primitives/ThinkingState";
+import { useTheme } from "next-themes";
+import { ThinkingOrb } from "@/components/primitives/thinking-orb";
+import { Shimmer } from "@/components/atoms/Shimmer";
 import CodeBlock from "@/components/primitives/CodeBlock";
 import ContextCards from "@/components/primitives/ContextCards";
 import ApprovalCard from "@/components/primitives/ApprovalCard";
 import InsightCards from "@/components/primitives/InsightCards";
 import PromptBar from "@/components/primitives/PromptBar";
+import { BorderBeam } from "@/components/primitives/border-beam";
 import { StreamText } from "@/components/atoms/StreamText";
 import {
   DEFAULT_REPLY,
@@ -32,6 +35,14 @@ const SUGGESTIONS = SUGGESTED_IDS.map(
   (id) => EXAMPLES.find((e) => e.id === id)!.question,
 );
 
+/* Map the thinking variant to a matching orb animation. */
+const ORB_STATE: Record<string, "working" | "searching" | "solving" | "breathing"> = {
+  Steps: "working",
+  Search: "searching",
+  Coding: "solving",
+  Reasoning: "breathing",
+};
+
 let idCounter = 0;
 const nextId = () => `m${idCounter++}`;
 
@@ -45,11 +56,25 @@ export function ChatPanel({
   const [messages, setMessages] = useState<Message[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const titleSetRef = useRef(false);
+  const { resolvedTheme } = useTheme();
+  const beamTheme = resolvedTheme === "light" ? "light" : "dark";
   const sentInitialRef = useRef(false);
 
   const scrollToBottom = useCallback(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
+  }, []);
+
+  const settle = useCallback((id: string) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, status: "streaming" } : m)),
+    );
+  }, []);
+
+  const finish = useCallback((id: string) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, status: "done" } : m)),
+    );
   }, []);
 
   const send = useCallback(
@@ -74,21 +99,11 @@ export function ChatPanel({
         titleSetRef.current = true;
         onTitle?.(trimmed);
       }
+      // Let the orb spin for a beat, then start streaming the answer.
+      setTimeout(() => settle(assistantId), 2600);
     },
-    [onTitle],
+    [onTitle, settle],
   );
-
-  const settle = useCallback((id: string) => {
-    setMessages((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, status: "streaming" } : m)),
-    );
-  }, []);
-
-  const finish = useCallback((id: string) => {
-    setMessages((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, status: "done" } : m)),
-    );
-  }, []);
 
   // Auto-send a prompt handed in from the sidebar / a suggestion.
   // The ref guard keeps StrictMode's double-mount from sending it twice.
@@ -118,12 +133,14 @@ export function ChatPanel({
               What can I help you with?
             </span>
           </h1>
-          <PromptBar
-            demo={false}
-            tall
-            placeholder="Message Lumen…"
-            onSend={send}
-          />
+          <BorderBeam size="md" colorVariant="colorful" theme={beamTheme}>
+            <PromptBar
+              demo={false}
+              tall
+              placeholder="Message Lumen…"
+              onSend={send}
+            />
+          </BorderBeam>
           <div className="mt-3">
             <div className="fade-x flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {SUGGESTIONS.map((s) => (
@@ -157,11 +174,15 @@ export function ChatPanel({
               </div>
             ) : (
               <div key={m.id} className="flex flex-col gap-3">
-                <ThinkingState
-                  variant={m.variant}
-                  onSettled={() => settle(m.id)}
-                />
-                {m.status !== "thinking" && (
+                {m.status === "thinking" ? (
+                  <div className="flex items-center gap-3">
+                    <ThinkingOrb
+                      state={ORB_STATE[m.variant ?? "Steps"] ?? "working"}
+                      size={64}
+                    />
+                    <Shimmer className="text-sm font-medium">Thinking…</Shimmer>
+                  </div>
+                ) : (
                   <StreamText
                     text={m.content}
                     caret={m.status === "streaming"}
@@ -187,7 +208,9 @@ export function ChatPanel({
       {/* composer */}
       <div className="shrink-0 px-4 pb-4">
         <div className="mx-auto w-full max-w-3xl">
-          <PromptBar demo={false} placeholder="Message Lumen…" onSend={send} />
+          <BorderBeam size="md" colorVariant="colorful" theme={beamTheme}>
+            <PromptBar demo={false} placeholder="Message Lumen…" onSend={send} />
+          </BorderBeam>
         </div>
       </div>
     </div>
