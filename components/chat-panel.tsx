@@ -133,6 +133,20 @@ export function ChatPanel({
               What can I help you with?
             </span>
           </h1>
+          <div className="mb-3">
+            <div className="fade-x flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => send(s)}
+                  className="shrink-0 rounded-full border border-line bg-surface px-4 py-2 text-[13.5px] font-medium whitespace-nowrap text-ink-2 shadow-btn transition-colors hover:border-line-strong hover:bg-hover hover:text-ink"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
           <BorderBeam size="md" colorVariant="colorful" theme={beamTheme}>
             <PromptBar
               demo={false}
@@ -141,20 +155,6 @@ export function ChatPanel({
               onSend={send}
             />
           </BorderBeam>
-          <div className="mt-3">
-            <div className="fade-x flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => send(s)}
-                  className="shrink-0 rounded-full bg-inset px-3 py-1.5 text-[13px] font-medium whitespace-nowrap text-ink-2 shadow-hairline transition-colors hover:bg-hover hover:text-ink"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     );
